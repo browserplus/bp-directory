@@ -21,7 +21,7 @@
 
 #include "bpservice/bpservice.h"
 #include "bpservice/bpcallback.h"
-#include "bpfile/bpfile.h"
+#include "bp-file/bpfile.h"
 #include <map>
 
 #if defined(WIN32)
