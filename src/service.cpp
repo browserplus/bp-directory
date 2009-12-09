@@ -171,19 +171,25 @@ public:
     void list(const Transaction& tran, 
               const bplus::Map& args);
 
-    void listWithStructure(const Transaction& tran, 
-                           const bplus::Map& args);
+    void recursiveList(const Transaction& tran, 
+                       const bplus::Map& args);
+
+    void recursiveListWithStructure(const Transaction& tran, 
+                                    const bplus::Map& args);
 
 private:
     void doList(const Transaction& tran, 
                 const bplus::Map& args,
+                bool recursive,
                 bool flat);
 };
 
 BP_SERVICE_DESC(Directory, "Directory", "1.0.0",
                 "Lets you snort about in directories.")
+
 ADD_BP_METHOD(Directory, list,
-              "Returns a list of filehandles for the directories contents.")
+              "Returns a list of filehandles for the directory's contents.  "
+              "Does not recurse into directories.")
 ADD_BP_METHOD_ARG(list, "directory", Path, true, 
                   "Directory to traverse.")
 ADD_BP_METHOD_ARG(list, "followLinks", Boolean, false, 
@@ -196,20 +202,36 @@ ADD_BP_METHOD_ARG(list, "limit", Integer, false,
 ADD_BP_METHOD_ARG(list, "callback", CallBack, false, 
                   "Optional callback with will be invoked with each path.")
 
-ADD_BP_METHOD(Directory, listWithStructure,
-              "Returns a nested list of filehandles for the directories "
-              "contents.")
-ADD_BP_METHOD_ARG(listWithStructure, "directory", Path, true, 
+ADD_BP_METHOD(Directory, recursiveList,
+              "Returns a list of filehandles for the directory's contents.  "
+              "Recurses into directories.")
+ADD_BP_METHOD_ARG(recursiveList, "directory", Path, true, 
                   "Directory to traverse.")
-ADD_BP_METHOD_ARG(listWithStructure, "followLinks", Boolean, false, 
+ADD_BP_METHOD_ARG(recursiveList, "followLinks", Boolean, false, 
                   "If true, symbolic links will be followed. Default is true.")
-ADD_BP_METHOD_ARG(listWithStructure, "mimetypes", List, false, 
+ADD_BP_METHOD_ARG(recursiveList, "mimetypes", List, false, 
                   "Optional list of mimetype filters to apply (e.g."
                   "[\"image/jpeg\"]")
-ADD_BP_METHOD_ARG(listWithStructure, "limit", Integer, false, 
+ADD_BP_METHOD_ARG(recursiveList, "limit", Integer, false, 
                   "Maximum number of items to examine.  Default is 1000.")
-ADD_BP_METHOD_ARG(listWithStructure, "callback", CallBack, false, 
+ADD_BP_METHOD_ARG(recursiveList, "callback", CallBack, false, 
                   "Optional callback with will be invoked with each path.")
+
+ADD_BP_METHOD(Directory, recursiveListWithStructure,
+              "Returns a nested list of filehandles for the directory's "
+              "contents.  Recurses into directories.")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "directory", Path, true, 
+                  "Directory to traverse.")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "followLinks", Boolean, false, 
+                  "If true, symbolic links will be followed. Default is true.")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "mimetypes", List, false, 
+                  "Optional list of mimetype filters to apply (e.g."
+                  "[\"image/jpeg\"]")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "limit", Integer, false, 
+                  "Maximum number of items to examine.  Default is 1000.")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "callback", CallBack, false, 
+                  "Optional callback with will be invoked with each path.")
+
 END_BP_SERVICE_DESC
 
 
@@ -217,15 +239,23 @@ void
 Directory::list(const Transaction& tran, 
                 const bplus::Map& args)
 {
-    doList(tran, args, true);
+    doList(tran, args, false, true);
 }
 
 
 void
-Directory::listWithStructure(const Transaction& tran, 
-                             const bplus::Map& args)
+Directory::recursiveList(const Transaction& tran, 
+                         const bplus::Map& args)
 {
-    doList(tran, args, false);
+    doList(tran, args, true, true);
+}
+
+
+void
+Directory::recursiveListWithStructure(const Transaction& tran, 
+                                      const bplus::Map& args)
+{
+    doList(tran, args, true, false);
 }
 
 
@@ -233,6 +263,7 @@ Directory::listWithStructure(const Transaction& tran,
 void
 Directory::doList(const Transaction& tran, 
                   const bplus::Map& args,
+                  bool recursive,
                   bool flat)
 {
     try {
@@ -280,7 +311,11 @@ Directory::doList(const Transaction& tran,
         }
 
         // do the visit, result in v.kids()
-        recursiveVisit(path, v, followLinks);
+        if (recursive) {
+            recursiveVisit(path, v, followLinks);
+        } else {
+            visit(path, v, followLinks);
+        }
 
         // return massive success
         bplus::Map results;
