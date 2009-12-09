@@ -188,8 +188,8 @@ BP_SERVICE_DESC(Directory, "Directory", "1.0.0",
                 "Lets you snort about in directories.")
 
 ADD_BP_METHOD(Directory, list,
-              "Returns a list of filehandles for the directory's contents.  "
-              "Does not recurse into directories.")
+              "Returns a list in \"contents\" of filehandles for the "
+              "directory's contents.  Does not recurse into directories.")
 ADD_BP_METHOD_ARG(list, "directory", Path, true, 
                   "Directory to traverse.")
 ADD_BP_METHOD_ARG(list, "followLinks", Boolean, false, 
@@ -203,8 +203,8 @@ ADD_BP_METHOD_ARG(list, "callback", CallBack, false,
                   "Optional callback with will be invoked with each path.")
 
 ADD_BP_METHOD(Directory, recursiveList,
-              "Returns a list of filehandles for the directory's contents.  "
-              "Recurses into directories.")
+              "Returns a list in \"contents\" of filehandles for the "
+              "directory's contents.  Recurses into directories.")
 ADD_BP_METHOD_ARG(recursiveList, "directory", Path, true, 
                   "Directory to traverse.")
 ADD_BP_METHOD_ARG(recursiveList, "followLinks", Boolean, false, 
@@ -218,8 +218,13 @@ ADD_BP_METHOD_ARG(recursiveList, "callback", CallBack, false,
                   "Optional callback with will be invoked with each path.")
 
 ADD_BP_METHOD(Directory, recursiveListWithStructure,
-              "Returns a nested list of filehandles for the directory's "
-              "contents.  Recurses into directories.")
+              "Returns a nested list in \"contents\" of objects for the "
+              "directory's contents.  Recurses into directories.  "
+              "Each object has \"relativeName\" (this node's "
+              "name relative to the specified directory), \"path\" (a "
+              "filehandle for this node), and optionally \"children\" "
+              "(present for directories only, a list of objects for the "
+              "directory's children).")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "directory", Path, true, 
                   "Directory to traverse.")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "followLinks", Boolean, false, 
