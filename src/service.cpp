@@ -185,7 +185,8 @@ private:
 };
 
 BP_SERVICE_DESC(Directory, "Directory", "1.0.0",
-                "Lets you snort about in directories.")
+                "Lets you list directory contents and invoke JavaScript ."
+                "callbacks for the contained items.")
 
 ADD_BP_METHOD(Directory, list,
               "Returns a list in \"contents\" of filehandles for the "
