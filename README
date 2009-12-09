@@ -1,0 +1,4 @@
+This repo can be used to build a BrowserPlus directory service.
+This service uses submodules lloyd/bakery and browserplus/bp-file
+ 
+Instructions to build the service are in the file BUILDING.
