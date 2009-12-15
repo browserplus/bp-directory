@@ -66,7 +66,7 @@ public:
         if (isMimeType(p, m_mimeTypes)) {
             if (m_cb) {
                 bplus::Map m;
-                m.add("path", new bplus::Path(p.externalUtf8()));
+                m.add("handle", new bplus::Path(p.externalUtf8()));
                 if (!m_flat) {
                     m.add("relativeName",
                           new bplus::String(relPath.externalUtf8()));
@@ -91,7 +91,7 @@ public:
             return;
         }
 
-        // flat heirarchy is easy, only one list
+        // flat hierarchy is easy, only one list, all filehandles
         if (m_flat) {
             m_topList->append(new bplus::Path(p.externalUtf8()));
             return;
@@ -111,7 +111,7 @@ public:
                     // no list for tpath, so it must be added to heirarchy
                     bplus::Map* m = new bplus::Map;
                     m->add("relativeName", new bplus::String(tpath.externalUtf8()));
-                    m->add("path", new bplus::Path(tpath.externalUtf8()));
+                    m->add("handle", new bplus::Path(tpath.externalUtf8()));
                     bplus::List* kids = new bplus::List;
                     m->add("children", kids);
                     m_listMap[tpath] = kids;
@@ -130,7 +130,7 @@ public:
         // also add new list to m_listMap
         bplus::Map* m = new bplus::Map;
         m->add("relativeName", new bplus::String(relPath.externalUtf8()));
-        m->add("path", new bplus::Path(p.externalUtf8()));
+        m->add("handle", new bplus::Path(p.externalUtf8()));
         if (bfs::is_directory(p)) {
             bplus::List* kids = new bplus::List;
             m->add("children", kids);
@@ -141,7 +141,7 @@ public:
 
     bplus::List* adoptKids() {
         bplus::List* l = m_topList;
-        m_topList = NULL;
+        m_topList = new bplus::List;
         return l;
     }
 
@@ -184,15 +184,16 @@ private:
                 bool flat);
 };
 
-BP_SERVICE_DESC(Directory, "Directory", "1.0.1",
+BP_SERVICE_DESC(Directory, "Directory", "1.1.0",
                 "Lets you list directory contents and invoke JavaScript ."
                 "callbacks for the contained items.")
 
 ADD_BP_METHOD(Directory, list,
-              "Returns a list in \"contents\" of filehandles for the "
-              "directory's contents.  Does not recurse into directories.")
-ADD_BP_METHOD_ARG(list, "directory", Path, true, 
-                  "Directory to traverse.")
+              "Returns a list in \"files\" of filehandles resulting "
+              "from a non-recursive traversal of the arguments.  "
+              "No directory structure information is returned. ")
+ADD_BP_METHOD_ARG(list, "files", List, true, 
+                  "Paths to traverse.")
 ADD_BP_METHOD_ARG(list, "followLinks", Boolean, false, 
                   "If true, symbolic links will be followed. Default is true.")
 ADD_BP_METHOD_ARG(list, "mimetypes", List, false, 
@@ -204,10 +205,11 @@ ADD_BP_METHOD_ARG(list, "callback", CallBack, false,
                   "Optional callback with will be invoked with each path.")
 
 ADD_BP_METHOD(Directory, recursiveList,
-              "Returns a list in \"contents\" of filehandles for the "
-              "directory's contents.  Recurses into directories.")
-ADD_BP_METHOD_ARG(recursiveList, "directory", Path, true, 
-                  "Directory to traverse.")
+              "Returns a list in \"files\" of filehandles resulting "
+              "from a recursive traversal of the arguments.  "
+              "No directory structure information is returned. ")
+ADD_BP_METHOD_ARG(recursiveList, "files", List, true, 
+                  "Paths to traverse.")
 ADD_BP_METHOD_ARG(recursiveList, "followLinks", Boolean, false, 
                   "If true, symbolic links will be followed. Default is true.")
 ADD_BP_METHOD_ARG(recursiveList, "mimetypes", List, false, 
@@ -219,15 +221,15 @@ ADD_BP_METHOD_ARG(recursiveList, "callback", CallBack, false,
                   "Optional callback with will be invoked with each path.")
 
 ADD_BP_METHOD(Directory, recursiveListWithStructure,
-              "Returns a nested list in \"contents\" of objects for the "
-              "directory's contents.  Recurses into directories.  "
-              "Each object has \"relativeName\" (this node's "
-              "name relative to the specified directory), \"path\" (a "
-              "filehandle for this node), and optionally \"children\" "
-              "(present for directories only, a list of objects for the "
-              "directory's children).")
-ADD_BP_METHOD_ARG(recursiveListWithStructure, "directory", Path, true, 
-                  "Directory to traverse.")
+              "Returns a nested list in \"files\" of objects for each of "
+              "the arguments.  An \"object\" contains the keys "
+              "\"relativeName\" (this node's name relative to the "
+              "specified directory), \"handle\" (a filehandle for "
+              "this node), and for directories \"children\" which "
+              "contains a list of objects for each of the directory's "
+              "children.  Recurse into directories.")
+ADD_BP_METHOD_ARG(recursiveListWithStructure, "files", List, true, 
+                  "Paths to traverse.")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "followLinks", Boolean, false, 
                   "If true, symbolic links will be followed. Default is true.")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "mimetypes", List, false, 
@@ -277,13 +279,11 @@ Directory::doList(const Transaction& tran,
 
         // dig out args
 
-        // directory, required
-        const bplus::Path* uri =
-            dynamic_cast<const bplus::Path*>(args.value("directory"));
-        if (!uri) {
-            throw string("required directory parameter missing");
+        // files, required
+        const bplus::List* files = dynamic_cast<const bplus::List*>(args.value("files"));
+        if (!files) {
+            throw string("required files parameter missing");
         }
-        Path path = pathFromURL((string)*uri);
         
         // followLinks, optional
         bool followLinks = true;
@@ -317,16 +317,25 @@ Directory::doList(const Transaction& tran,
         }
 
         // do the visit, result in v.kids()
-        if (recursive) {
-            recursiveVisit(path, v, followLinks);
-        } else {
-            visit(path, v, followLinks);
+        bplus::List* filesList = NULL;
+        for (size_t i = 0; i < files->size(); i++) {
+            const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
+            if (!uri) {
+                throw string("non-path argument found in 'files'");
+            }
+
+            Path path = pathFromURL((string)*uri);
+            if (recursive) {
+                recursiveVisit(path, v, followLinks);
+            } else {
+                visit(path, v, followLinks);
+            }
         }
 
         // return massive success
         bplus::Map results;
         results.add("success", new bplus::Bool(true));
-        results.add("contents", v.adoptKids());
+        results.add("files", v.adoptKids());
         tran.complete(results);
 
     } catch (const string& msg) {
