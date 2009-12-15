@@ -317,7 +317,6 @@ Directory::doList(const Transaction& tran,
         }
 
         // do the visit, result in v.kids()
-        bplus::List* filesList = NULL;
         for (size_t i = 0; i < files->size(); i++) {
             const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
             if (!uri) {
