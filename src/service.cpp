@@ -184,7 +184,7 @@ private:
                 bool flat);
 };
 
-BP_SERVICE_DESC(Directory, "Directory", "2.0.1",
+BP_SERVICE_DESC(Directory, "Directory", "2.0.2",
                 "Lets you list directory contents and invoke JavaScript ."
                 "callbacks for the contained items.")
 
