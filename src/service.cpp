@@ -104,14 +104,20 @@ public:
         if (relParent.empty()) {
             theList = m_topList;
         } else {
+            // find anchor
+            Path tpathFull = p.parent_path();
+            for (tBase::iterator it = relParent.end(); it != relParent.begin(); --it) {
+                tpathFull = tpathFull.parent_path();
+            }
             Path tpath;
             for (tBase::iterator it = relParent.begin(); it != relParent.end(); ++it) {
                 tpath /= *it;
+                tpathFull /= *it;
                 if (m_listMap.find(tpath) == m_listMap.end()) {
                     // no list for tpath, so it must be added to heirarchy
                     bplus::Map* m = new bplus::Map;
                     m->add("relativeName", new bplus::String(tpath.externalUtf8()));
-                    m->add("handle", new bplus::Path(tpath.externalUtf8()));
+                    m->add("handle", new bplus::Path(tpathFull.externalUtf8()));
                     bplus::List* kids = new bplus::List;
                     m->add("children", kids);
                     m_listMap[tpath] = kids;
@@ -131,7 +137,7 @@ public:
         bplus::Map* m = new bplus::Map;
         m->add("relativeName", new bplus::String(relPath.externalUtf8()));
         m->add("handle", new bplus::Path(p.externalUtf8()));
-        if (bfs::is_directory(p)) {
+        if (isDirectory(p)) {
             bplus::List* kids = new bplus::List;
             m->add("children", kids);
             m_listMap[relPath] = kids;
@@ -184,7 +190,7 @@ private:
                 bool flat);
 };
 
-BP_SERVICE_DESC(Directory, "Directory", "2.0.2",
+BP_SERVICE_DESC(Directory, "Directory", "2.0.3",
                 "Lets you list directory contents and invoke JavaScript ."
                 "callbacks for the contained items.")
 
