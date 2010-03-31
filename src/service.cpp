@@ -190,7 +190,7 @@ private:
                 bool flat);
 };
 
-BP_SERVICE_DESC(Directory, "Directory", "2.0.3",
+BP_SERVICE_DESC(Directory, "Directory", "2.0.4",
                 "Lets you list directory contents and invoke JavaScript ."
                 "callbacks for the contained items.")
 
@@ -330,7 +330,7 @@ Directory::doList(const Transaction& tran,
             }
 
             Path path = pathFromURL((string)*uri);
-            if (recursive) {
+            if (recursive && isDirectory(path)) {
                 recursiveVisit(path, v, followLinks);
             } else {
                 visit(path, v, followLinks);
