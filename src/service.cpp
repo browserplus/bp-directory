@@ -291,6 +291,20 @@ Directory::doList(const Transaction& tran,
             throw string("required files parameter missing");
         }
         
+        // verify that all files exist
+        vector<Path> paths;
+        for (size_t i = 0; i < files->size(); i++) {
+            const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
+            if (!uri) {
+                throw string("non-path argument found in 'files'");
+            }
+            Path path = pathFromURL((string)*uri);
+            if (!exists(path)) {
+                throw string(path.externalUtf8() + " not found");
+            }
+            paths.push_back(path);
+        }
+
         // followLinks, optional
         bool followLinks = true;
         (void) args.getBool("followLinks", followLinks);
@@ -323,17 +337,11 @@ Directory::doList(const Transaction& tran,
         }
 
         // do the visit, result in v.kids()
-        for (size_t i = 0; i < files->size(); i++) {
-            const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
-            if (!uri) {
-                throw string("non-path argument found in 'files'");
-            }
-
-            Path path = pathFromURL((string)*uri);
-            if (recursive && isDirectory(path)) {
-                recursiveVisit(path, v, followLinks);
+        for (size_t i = 0; i < paths.size(); ++i) {
+            if (recursive && isDirectory(paths[i])) {
+                recursiveVisit(paths[i], v, followLinks);
             } else {
-                visit(path, v, followLinks);
+                visit(paths[i], v, followLinks);
             }
         }
 
