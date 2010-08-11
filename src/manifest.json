@@ -1,10 +1,11 @@
 {
-  "type": "standalone",
-  "CoreletLibrary": "@SERVICE_LIBRARY@",
-    "strings": { 
-      "en": { 
-          "title": "Directory Service", 
-          "summary": "Lets you walk directory structures and invoke Javascript callback for the contained items."
-      }
+  "type":"standalone",
+  "CoreletLibrary":"@SERVICE_LIBRARY@",
+  "ServiceLibrary":"@SERVICE_LIBRARY@",
+  "strings":{ 
+    "en":{ 
+      "title":"Directory Service", 
+      "summary":"Lets you walk directory structures and invoke Javascript callback for the contained items."
     }
   }
+}
