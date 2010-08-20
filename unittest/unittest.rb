@@ -340,8 +340,7 @@ class TestDirectory < Test::Unit::TestCase
           [{"handle" => @path_testdir_noP,
             "relativeName" => ".",
             "children" =>
-             [{"handle" =>
-@path_testdir + "foo1.txt",
+             [{"handle" => @path_testdir + "foo1.txt",
                "relativeName" => "." + sep + "foo1.txt"}]}],
          "success" => true}
       got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => true, "limit" => 2 })
