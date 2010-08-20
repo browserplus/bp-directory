@@ -118,23 +118,23 @@ class TestDirectory < Test::Unit::TestCase
     BrowserPlus.run(@service) { |s|
       # Directory/File does not exist, should return error <--------------------------------- BUG 212
       #x = @test_directory_1 + "/this"
-      #@list = Array.[]( x )
-      #got = s.recursiveList( { 'files' => @list  } )
+      #list = Array.[]( x )
+      #got = s.recursiveList( { 'files' => list  } )
       #puts got
 
       # 3 text files.
-      @list = Array.[]( @test_directory_1 )
+      list = Array.[]( @test_directory_1 )
       want = {"files" =>
               [@path_testdir + "test_directory_1",
                @path_testdir + "test_directory_1/bar1.txt",
                @path_testdir + "test_directory_1/bar2.txt",
                @path_testdir + "test_directory_1/bar3.txt"],
               "success" => true }
-      got = s.recursiveList({ 'files' => @list })
+      got = s.recursiveList({ 'files' => list })
       assert_equal(want, got)
 
       # Just one folder, no symbolic links.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" =>
               [@path_testdir_noP,
                @path_testdir + "foo1.txt",
@@ -146,11 +146,11 @@ class TestDirectory < Test::Unit::TestCase
                @path_testdir + "test_directory_1/bar2.txt",
                @path_testdir + "test_directory_1/bar3.txt"],
               "success" => true}
-      got = s.recursiveList({ 'files' => @list, "followLinks" => false })
+      got = s.recursiveList({ 'files' => list, "followLinks" => false })
       assert_equal(want, got)
 
       # Symbolic links.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = if CONFIG['arch'] =~ /mswin|mingw/
                {"files" =>
                 [@path_testdir_noP,
@@ -176,12 +176,12 @@ class TestDirectory < Test::Unit::TestCase
                  @path_testdir + "test_directory_1/bar2.txt",
                  @path_testdir + "test_directory_1/bar3.txt"],
                 "success" => true}
-	      end
-      got = s.recursiveList({ 'files' => @list, "followLinks" => true })
+              end
+      got = s.recursiveList({ 'files' => list, "followLinks" => true })
       assert_equal(want, got)
 
       # Mimetype => text/plain.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" =>
               [@path_testdir + "foo1.txt",
                @path_testdir + "foo2.txt",
@@ -190,28 +190,28 @@ class TestDirectory < Test::Unit::TestCase
                @path_testdir + "test_directory_1/bar2.txt",
                @path_testdir + "test_directory_1/bar3.txt"],
               "success" => true}
-      got = s.recursiveList({ 'files' => @list, "followLinks" => false, "mimetypes" => ["text/plain"] })
+      got = s.recursiveList({ 'files' => list, "followLinks" => false, "mimetypes" => ["text/plain"] })
       assert_equal(want, got)
 
       # Mimetype => image/jpeg ---- none present.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" => [], "success" => true}
-      got = s.recursiveList({ 'files' => @list, "followLinks" => false, "mimetypes" => ["image/jpeg"] })
+      got = s.recursiveList({ 'files' => list, "followLinks" => false, "mimetypes" => ["image/jpeg"] })
       assert_equal(want, got)
 
       # Limit = 2.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" =>
               [@path_testdir_noP,
                @path_testdir + "foo1.txt"],
               "success" => true}
-      got = s.recursiveList({ 'files' => @list, "followLinks" => true, "limit" => 2 })
+      got = s.recursiveList({ 'files' => list, "followLinks" => true, "limit" => 2 })
       assert_equal(want, got)
 
       # Callback.
       x = 1
-      @list = Array.[]( @test_directory )
-      got = s.recursiveList({ 'files' => @list, "followLinks" => true, "limit" => 2 }, x = x + 1)
+      list = Array.[]( @test_directory )
+      got = s.recursiveList({ 'files' => list, "followLinks" => true, "limit" => 2 }, x = x + 1)
       assert_equal( 2, x )
     }
   end
@@ -225,8 +225,8 @@ class TestDirectory < Test::Unit::TestCase
     BrowserPlus.run(@service) { |s|
       # Directory/File does not exist, should return error <--------------------------------- BUG 212
       # x = @test_directory_1 + "/this"
-      # @list = Array.[]( x )
-      # got = s.recursiveListWithStructure( { 'files' => @list  } )
+      # list = Array.[]( x )
+      # got = s.recursiveListWithStructure( { 'files' => list  } )
       # puts got
 
       if CONFIG['arch'] =~ /mswin|mingw/
@@ -235,7 +235,7 @@ class TestDirectory < Test::Unit::TestCase
         sep = "/"
       end
       # 3 text files.
-      @list = Array.[]( @test_directory_1 )
+      list = Array.[]( @test_directory_1 )
       want = {"files" =>
               [{"handle" => @path_testdir + "test_directory_1",
                 "relativeName" => "test_directory_1",
@@ -247,39 +247,64 @@ class TestDirectory < Test::Unit::TestCase
                   {"handle" => @path_testdir + "test_directory_1/bar3.txt",
                    "relativeName" => "test_directory_1" + sep + "bar3.txt"}]}],
              "success" => true}
-      got = s.recursiveListWithStructure({ 'files' => @list })
+      got = s.recursiveListWithStructure({ 'files' => list })
       assert_equal(want, got)
 
       # Just one folder, no symbolic links.
-      @list = Array.[]( @test_directory )
-      want = {"files" =>
-              [{"handle" => @path_testdir_noP,
-                "relativeName" => ".",
-                "children" =>
-                 [{"handle" => @path_testdir + "foo1.txt",
-                   "relativeName" => "." + sep + "foo1.txt"},
-                  {"handle" => @path_testdir + "foo2.txt",
-                   "relativeName" => "." + sep + "foo2.txt"},
-                  {"handle" => @path_testdir + "foo3.txt",
-                   "relativeName" => "." + sep + "foo3.txt"},
-                  {"handle" => @path_testdir + "sym_link",
-                   "relativeName" => "." + sep + "sym_link",
-                   "children" =>[]},
-                  {"handle" => @path_testdir + "test_directory_1",
-                   "relativeName" => "." + sep + "test_directory_1",
-                   "children" =>
-                    [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
-                      "relativeName" => "." + sep + "test_directory_1/bar1.txt"},
-                     {"handle" => @path_testdir + "test_directory_1/bar2.txt",
-                      "relativeName" => "." + sep + "test_directory_1/bar2.txt"},
-                     {"handle" => @path_testdir + "test_directory_1/bar3.txt",
-                      "relativeName" => "." + sep + "test_directory_1/bar3.txt"}]}]}],
-             "success" => true}
-      got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => false })
+      list = Array.[]( @test_directory )
+      want = if CONFIG['arch'] =~ /mswin|mingw/
+               {"files" =>
+                [{"handle" => @path_testdir_noP,
+                  "relativeName" => ".",
+                  "children" =>
+                   [{"handle" => @path_testdir + "foo1.txt",
+                     "relativeName" => "." + sep + "foo1.txt"},
+                    {"handle" => @path_testdir + "foo2.txt",
+                     "relativeName" => "." + sep + "foo2.txt"},
+                    {"handle" => @path_testdir + "foo3.txt",
+                     "relativeName" => "." + sep + "foo3.txt"},
+                    {"handle" => @path_testdir + "sym_link",
+                     "relativeName" => "." + sep + "sym_link"},
+                    {"handle" => @path_testdir + "test_directory_1",
+                     "relativeName" => "." + sep + "test_directory_1",
+                     "children" =>
+                      [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar1.txt"},
+                       {"handle" => @path_testdir + "test_directory_1/bar2.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar2.txt"},
+                       {"handle" => @path_testdir + "test_directory_1/bar3.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar3.txt"}]}]}],
+               "success" => true}
+             else
+               {"files" =>
+                [{"handle" => @path_testdir_noP,
+                  "relativeName" => ".",
+                  "children" =>
+                   [{"handle" => @path_testdir + "foo1.txt",
+                     "relativeName" => "." + sep + "foo1.txt"},
+                    {"handle" => @path_testdir + "foo2.txt",
+                     "relativeName" => "." + sep + "foo2.txt"},
+                    {"handle" => @path_testdir + "foo3.txt",
+                     "relativeName" => "." + sep + "foo3.txt"},
+                    {"handle" => @path_testdir + "sym_link",
+                     "relativeName" => "." + sep + "sym_link",
+                     "children" =>[]},
+                    {"handle" => @path_testdir + "test_directory_1",
+                     "relativeName" => "." + sep + "test_directory_1",
+                     "children" =>
+                      [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar1.txt"},
+                       {"handle" => @path_testdir + "test_directory_1/bar2.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar2.txt"},
+                       {"handle" => @path_testdir + "test_directory_1/bar3.txt",
+                        "relativeName" => "." + sep + "test_directory_1" + sep + "bar3.txt"}]}]}],
+               "success" => true}
+             end
+      got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => false })
       assert_equal(want, got)
 
       # Mimetype => text/plain.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" =>
           [{"handle" => @path1 + ".",
             "relativeName" => ".",
@@ -294,23 +319,23 @@ class TestDirectory < Test::Unit::TestCase
                "relativeName" => "." + sep + "test_directory_1",
                "children" =>
                 [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
-                  "relativeName" => "." + sep + "test_directory_1/bar1.txt"},
+                  "relativeName" => "." + sep + "test_directory_1" + sep + "bar1.txt"},
                  {"handle" => @path_testdir + "test_directory_1/bar2.txt",
-                  "relativeName" => "." + sep + "test_directory_1/bar2.txt"},
+                  "relativeName" => "." + sep + "test_directory_1" + sep + "bar2.txt"},
                  {"handle" => @path_testdir + "test_directory_1/bar3.txt",
-                  "relativeName" => "." + sep + "test_directory_1/bar3.txt"}]}]}],
+                  "relativeName" => "." + sep + "test_directory_1" + sep + "bar3.txt"}]}]}],
          "success" => true}
-      got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => false, "mimetypes" => ["text/plain"] })
+      got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => false, "mimetypes" => ["text/plain"] })
       assert_equal(want, got)
 
       # Mimetype => image/jpeg ---- none present.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" => [], "success" => true}
-      got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => false, "mimetypes" => ["image/jpeg"] })
+      got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => false, "mimetypes" => ["image/jpeg"] })
       assert_equal(want, got)
 
       # Size = 2.
-      @list = Array.[]( @test_directory )
+      list = Array.[]( @test_directory )
       want = {"files" =>
           [{"handle" => @path_testdir_noP,
             "relativeName" => ".",
@@ -319,13 +344,13 @@ class TestDirectory < Test::Unit::TestCase
 @path_testdir + "foo1.txt",
                "relativeName" => "." + sep + "foo1.txt"}]}],
          "success" => true}
-      got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => true, "limit" => 2 })
+      got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => true, "limit" => 2 })
       assert_equal(want, got)
 
       # Function.
       x = 1
-      @list = Array.[]( @test_directory )
-      got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => true, "limit" => 2 }, x = x + 1)
+      list = Array.[]( @test_directory )
+      got = s.recursiveListWithStructure({ 'files' => list, "followLinks" => true, "limit" => 2 }, x = x + 1)
       assert_equal( 2, x )
     }
   end
