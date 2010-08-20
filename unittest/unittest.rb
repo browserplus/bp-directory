@@ -151,22 +151,32 @@ class TestDirectory < Test::Unit::TestCase
 
       # Symbolic links.
       @list = Array.[]( @test_directory )
-      want = {"files" =>
-              [@path_testdir_noP,
-               @path_testdir + "foo1.txt",
-               @path_testdir + "foo2.txt",
-               @path_testdir + "foo3.txt",
-               (if CONFIG['arch'] =~ /mswin|mingw/
-                 @path_testdir + "sym_link"
-               else
-                 @path1 + "sym_link"
-               end),
-               (@path1 + "sym_link/sym1.txt" unless CONFIG['arch'] =~ /mswin|mingw/),
-               @path_testdir + "test_directory_1",
-               @path_testdir + "test_directory_1/bar1.txt",
-               @path_testdir + "test_directory_1/bar2.txt",
-               @path_testdir + "test_directory_1/bar3.txt"],
-              "success" => true}
+      want = if CONFIG['arch'] =~ /mswin|mingw/
+               {"files" =>
+                [@path_testdir_noP,
+                 @path_testdir + "foo1.txt",
+                 @path_testdir + "foo2.txt",
+                 @path_testdir + "foo3.txt",
+                 @path_testdir + "sym_link",
+                 @path_testdir + "test_directory_1",
+                 @path_testdir + "test_directory_1/bar1.txt",
+                 @path_testdir + "test_directory_1/bar2.txt",
+                 @path_testdir + "test_directory_1/bar3.txt"],
+                "success" => true}
+              else
+               {"files" =>
+                [@path_testdir_noP,
+                 @path_testdir + "foo1.txt",
+                 @path_testdir + "foo2.txt",
+                 @path_testdir + "foo3.txt",
+                 @path1 + "sym_link",
+                 @path1 + "sym_link/sym1.txt",
+                 @path_testdir + "test_directory_1",
+                 @path_testdir + "test_directory_1/bar1.txt",
+                 @path_testdir + "test_directory_1/bar2.txt",
+                 @path_testdir + "test_directory_1/bar3.txt"],
+                "success" => true}
+	      end
       got = s.recursiveList({ 'files' => @list, "followLinks" => true })
       assert_equal(want, got)
 
