@@ -229,6 +229,11 @@ class TestDirectory < Test::Unit::TestCase
       # got = s.recursiveListWithStructure( { 'files' => @list  } )
       # puts got
 
+      if CONFIG['arch'] =~ /mswin|mingw/
+        sep = "\\"
+      else
+        sep = "/"
+      end
       # 3 text files.
       @list = Array.[]( @test_directory_1 )
       want = {"files" =>
@@ -236,11 +241,11 @@ class TestDirectory < Test::Unit::TestCase
                 "relativeName" => "test_directory_1",
                 "children" =>
                 [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
-                  "relativeName" => "test_directory_1/bar1.txt"},
+                  "relativeName" => "test_directory_1" + sep + "bar1.txt"},
                   {"handle" => @path_testdir + "test_directory_1/bar2.txt",
-                   "relativeName" => "test_directory_1/bar2.txt"},
+                   "relativeName" => "test_directory_1" + sep + "bar2.txt"},
                   {"handle" => @path_testdir + "test_directory_1/bar3.txt",
-                   "relativeName" => "test_directory_1/bar3.txt"}]}],
+                   "relativeName" => "test_directory_1" + sep + "bar3.txt"}]}],
              "success" => true}
       got = s.recursiveListWithStructure({ 'files' => @list })
       assert_equal(want, got)
@@ -252,23 +257,23 @@ class TestDirectory < Test::Unit::TestCase
                 "relativeName" => ".",
                 "children" =>
                  [{"handle" => @path_testdir + "foo1.txt",
-                   "relativeName" => "./foo1.txt"},
+                   "relativeName" => "." + sep + "foo1.txt"},
                   {"handle" => @path_testdir + "foo2.txt",
-                   "relativeName" => "./foo2.txt"},
+                   "relativeName" => "." + sep + "foo2.txt"},
                   {"handle" => @path_testdir + "foo3.txt",
-                   "relativeName" => "./foo3.txt"},
+                   "relativeName" => "." + sep + "foo3.txt"},
                   {"handle" => @path_testdir + "sym_link",
-                   "relativeName" => "./sym_link",
+                   "relativeName" => "." + sep + "sym_link",
                    "children" =>[]},
                   {"handle" => @path_testdir + "test_directory_1",
-                   "relativeName" => "./test_directory_1",
+                   "relativeName" => "." + sep + "test_directory_1",
                    "children" =>
                     [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
-                      "relativeName" => "./test_directory_1/bar1.txt"},
+                      "relativeName" => "." + sep + "test_directory_1/bar1.txt"},
                      {"handle" => @path_testdir + "test_directory_1/bar2.txt",
-                      "relativeName" => "./test_directory_1/bar2.txt"},
+                      "relativeName" => "." + sep + "test_directory_1/bar2.txt"},
                      {"handle" => @path_testdir + "test_directory_1/bar3.txt",
-                      "relativeName" => "./test_directory_1/bar3.txt"}]}]}],
+                      "relativeName" => "." + sep + "test_directory_1/bar3.txt"}]}]}],
              "success" => true}
       got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => false })
       assert_equal(want, got)
@@ -280,20 +285,20 @@ class TestDirectory < Test::Unit::TestCase
             "relativeName" => ".",
             "children" =>
              [{"handle" => @path_testdir + "foo1.txt",
-               "relativeName" => "./foo1.txt"},
+               "relativeName" => "." + sep + "foo1.txt"},
               {"handle" => @path_testdir + "foo2.txt",
-               "relativeName" => "./foo2.txt"},
+               "relativeName" => "." + sep + "foo2.txt"},
               {"handle" => @path_testdir + "foo3.txt",
-               "relativeName" => "./foo3.txt"},
+               "relativeName" => "." + sep + "foo3.txt"},
               {"handle" => @path1 + "./test_directory_1",
-               "relativeName" => "./test_directory_1",
+               "relativeName" => "." + sep + "test_directory_1",
                "children" =>
                 [{"handle" => @path_testdir + "test_directory_1/bar1.txt",
-                  "relativeName" => "./test_directory_1/bar1.txt"},
+                  "relativeName" => "." + sep + "test_directory_1/bar1.txt"},
                  {"handle" => @path_testdir + "test_directory_1/bar2.txt",
-                  "relativeName" => "./test_directory_1/bar2.txt"},
+                  "relativeName" => "." + sep + "test_directory_1/bar2.txt"},
                  {"handle" => @path_testdir + "test_directory_1/bar3.txt",
-                  "relativeName" => "./test_directory_1/bar3.txt"}]}]}],
+                  "relativeName" => "." + sep + "test_directory_1/bar3.txt"}]}]}],
          "success" => true}
       got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => false, "mimetypes" => ["text/plain"] })
       assert_equal(want, got)
@@ -312,7 +317,7 @@ class TestDirectory < Test::Unit::TestCase
             "children" =>
              [{"handle" =>
 @path_testdir + "foo1.txt",
-               "relativeName" => "./foo1.txt"}]}],
+               "relativeName" => "." + sep + "foo1.txt"}]}],
          "success" => true}
       got = s.recursiveListWithStructure({ 'files' => @list, "followLinks" => true, "limit" => 2 })
       assert_equal(want, got)
