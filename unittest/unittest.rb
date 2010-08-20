@@ -16,12 +16,12 @@ class TestDirectory < Test::Unit::TestCase
     end
     @cwd = File.dirname(File.expand_path(__FILE__))
     @service = File.join(@cwd, "../#{subdir}")
-    @path1 = @cwd + "/test_files"
-    @path_testdir = @path1 + "/test_directory/"
-    @path_testdir_noP = @path1 + "/test_directory"
-    @path_testdir1 = @path1 + "/test_directory/test_directory_1/"
-    @test_directory = "path://" + @path1 + "/test_directory/"
-    @test_directory_1 = "path://" + @path1 + "/test_directory/test_directory_1"
+    @path1 = @cwd + "/test_files/"
+    @path_testdir = @path1 + "test_directory/"
+    @path_testdir_noP = @path1 + "test_directory"
+    @path_testdir1 = @path1 + "test_directory/test_directory_1/"
+    @test_directory = "path://" + @path1 + "test_directory/"
+    @test_directory_1 = "path://" + @path1 + "test_directory/test_directory_1"
   end
   
   def teardown
@@ -49,19 +49,39 @@ class TestDirectory < Test::Unit::TestCase
 
       # Just one folder, no symbolic links.
       list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt", @path_testdir + "sym_link", @path_testdir + "test_directory_1"], "success" => true}
+      want = {"files" =>
+              [@path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt",
+               @path_testdir + "sym_link",
+               @path_testdir + "test_directory_1"],
+             "success" => true}
       got = s.list({ 'files' => list, "followLinks" => false })
       assert_equal(want, got)
 
       # Symbolic links.
       list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt", @path1 + "/sym_link", @path_testdir + "test_directory_1"], "success" => true}
+      want = {"files" =>
+              [@path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt",
+               if CONFIG['arch'] =~ /mswin|mingw/
+                 @path_testdir + "sym_link"
+               else
+                 @path1 + "sym_link"
+               end,
+               @path_testdir + "test_directory_1"],
+              "success" => true}
       got = s.list({ 'files' => list, "followLinks" => true })
       assert_equal(want, got)
 
       # Mimetype => text/plain.
       list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt"],
+              "success" => true}
       got = s.list({ 'files' => list, "followLinks" => false, "mimetypes" => ["text/plain"] })
       assert_equal(want, got)
 
@@ -73,7 +93,10 @@ class TestDirectory < Test::Unit::TestCase
 
       # Size = 2.
       list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir + "foo1.txt", @path_testdir + "foo2.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt"],
+              "success" => true}
       got = s.list({ 'files' => list, "followLinks" => true, "limit" => 2 })
       assert_equal(want, got)
 
@@ -97,25 +120,66 @@ class TestDirectory < Test::Unit::TestCase
 
       # 3 text files.
       @list = Array.[]( @test_directory_1 )
-      want = {"files" => [@path_testdir + "test_directory_1", @path_testdir + "test_directory_1/bar1.txt", @path_testdir + "test_directory_1/bar2.txt", @path_testdir + "test_directory_1/bar3.txt"], "success" => true }
+      want = {"files" =>
+              [@path_testdir + "test_directory_1",
+               @path_testdir + "test_directory_1/bar1.txt",
+               @path_testdir + "test_directory_1/bar2.txt",
+               @path_testdir + "test_directory_1/bar3.txt"],
+              "success" => true }
       got = s.recursiveList({ 'files' => @list })
       assert_equal(want, got)
 
       # Just one folder, no symbolic links.
       @list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir_noP, @path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt", @path_testdir + "sym_link", @path_testdir + "test_directory_1", @path_testdir + "test_directory_1/bar1.txt", @path_testdir + "test_directory_1/bar2.txt", @path_testdir + "test_directory_1/bar3.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir_noP,
+               @path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt",
+               @path_testdir + "sym_link",
+               @path_testdir + "test_directory_1",
+               @path_testdir + "test_directory_1/bar1.txt",
+               @path_testdir + "test_directory_1/bar2.txt",
+               @path_testdir + "test_directory_1/bar3.txt"],
+              "success" => true}
       got = s.recursiveList({ 'files' => @list, "followLinks" => false })
       assert_equal(want, got)
 
       # Symbolic links.
       @list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir_noP, @path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt", @path1 + "/sym_link", @path1 + "/sym_link/sym1.txt", @path_testdir + "test_directory_1", @path_testdir + "test_directory_1/bar1.txt", @path_testdir + "test_directory_1/bar2.txt", @path_testdir + "test_directory_1/bar3.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir_noP,
+               @path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt",
+               if CONFIG['arch'] =~ /mswin|mingw/
+                 @path_testdir + "sym_link"
+               else
+                 @path1 + "sym_link"
+               end,
+               if CONFIG['arch'] =~ /mswin|mingw/
+                 @path_testdir + "sym_link/sym1.txt"
+               else
+                 @path1 + "sym_link/sym1.txt"
+               end,
+               @path_testdir + "test_directory_1",
+               @path_testdir + "test_directory_1/bar1.txt",
+               @path_testdir + "test_directory_1/bar2.txt",
+               @path_testdir + "test_directory_1/bar3.txt"],
+              "success" => true}
       got = s.recursiveList({ 'files' => @list, "followLinks" => true })
       assert_equal(want, got)
 
       # Mimetype => text/plain.
       @list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir + "foo1.txt", @path_testdir + "foo2.txt", @path_testdir + "foo3.txt", @path_testdir + "test_directory_1/bar1.txt", @path_testdir + "test_directory_1/bar2.txt", @path_testdir + "test_directory_1/bar3.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir + "foo1.txt",
+               @path_testdir + "foo2.txt",
+               @path_testdir + "foo3.txt",
+               @path_testdir + "test_directory_1/bar1.txt",
+               @path_testdir + "test_directory_1/bar2.txt",
+               @path_testdir + "test_directory_1/bar3.txt"],
+              "success" => true}
       got = s.recursiveList({ 'files' => @list, "followLinks" => false, "mimetypes" => ["text/plain"] })
       assert_equal(want, got)
 
@@ -127,7 +191,10 @@ class TestDirectory < Test::Unit::TestCase
 
       # Limit = 2.
       @list = Array.[]( @test_directory )
-      want = {"files" => [@path_testdir_noP, @path_testdir + "foo1.txt"], "success" => true}
+      want = {"files" =>
+              [@path_testdir_noP,
+               @path_testdir + "foo1.txt"],
+              "success" => true}
       got = s.recursiveList({ 'files' => @list, "followLinks" => true, "limit" => 2 })
       assert_equal(want, got)
 
@@ -212,7 +279,7 @@ class TestDirectory < Test::Unit::TestCase
       # Mimetype => text/plain.
       @list = Array.[]( @test_directory )
       want = {"files" =>
-          [{"handle" => @path1 + "/.",
+          [{"handle" => @path1 + ".",
             "relativeName" => ".",
             "children" =>
              [{"handle" =>
@@ -225,7 +292,7 @@ class TestDirectory < Test::Unit::TestCase
                 @path_testdir + "foo3.txt",
                "relativeName" => "./foo3.txt"},
               {"handle" =>
-                @path1 + "/./test_directory_1",
+                @path1 + "./test_directory_1",
                "relativeName" => "./test_directory_1",
                "children" =>
                 [{"handle" =>
