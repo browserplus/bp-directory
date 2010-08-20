@@ -157,11 +157,7 @@ class TestDirectory < Test::Unit::TestCase
                else
                  @path1 + "sym_link"
                end,
-               if CONFIG['arch'] =~ /mswin|mingw/
-                 @path_testdir + "sym_link/sym1.txt"
-               else
-                 @path1 + "sym_link/sym1.txt"
-               end,
+               @path1 + "sym_link/sym1.txt" unless CONFIG['arch'] =~ /mswin|mingw/,
                @path_testdir + "test_directory_1",
                @path_testdir + "test_directory_1/bar1.txt",
                @path_testdir + "test_directory_1/bar2.txt",
