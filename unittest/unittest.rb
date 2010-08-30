@@ -36,10 +36,8 @@ class TestDirectory < Test::Unit::TestCase
   # Returns a list in "files" of filehandles resulting from a non-recursive traversal of the arguments. No directory structure information is returned.
   def test_list
     BrowserPlus.run(@service) { |s|
-      # Directory/File does not exist, should return error <------------------------- BUG 212
-      #list = Array.[]( @test_directory_1 + "/this" )
-      #got = s.list( { 'files' => list  } ) { |callback| puts callback }
-      #puts got
+      list = Array.[]( @test_directory_1 + "/this" )
+      assert_raise(RuntimeError) { s.list( { 'files' => list  } ) }
 
       # 3 text files.
       list = Array.[]( @test_directory_1 )
@@ -116,11 +114,8 @@ class TestDirectory < Test::Unit::TestCase
   # Returns a list in "files" of filehandles resulting from a recursive traversal of the arguments. No directory structure information is returned
   def test_recursiveList
     BrowserPlus.run(@service) { |s|
-      # Directory/File does not exist, should return error <--------------------------------- BUG 212
-      #x = @test_directory_1 + "/this"
-      #list = Array.[]( x )
-      #got = s.recursiveList( { 'files' => list  } )
-      #puts got
+      list = Array.[]( @test_directory_1 + "/this" )
+      assert_raise(RuntimeError) { s.recursiveList( { 'files' => list  } ) }
 
       # 3 text files.
       list = Array.[]( @test_directory_1 )
@@ -223,11 +218,8 @@ class TestDirectory < Test::Unit::TestCase
   # Recurse into directories.
   def test_recursiveListWithStructure
     BrowserPlus.run(@service) { |s|
-      # Directory/File does not exist, should return error <--------------------------------- BUG 212
-      # x = @test_directory_1 + "/this"
-      # list = Array.[]( x )
-      # got = s.recursiveListWithStructure( { 'files' => list  } )
-      # puts got
+      list = Array.[]( @test_directory_1 + "/this" )
+      assert_raise(RuntimeError) { s.recursiveListWithStructure( { 'files' => list  } ) }
 
       if CONFIG['arch'] =~ /mswin|mingw/
         sep = "\\"
