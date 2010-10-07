@@ -16,6 +16,7 @@ class TestDirectory < Test::Unit::TestCase
     end
     @cwd = File.dirname(File.expand_path(__FILE__))
     @service = File.join(@cwd, "../#{subdir}")
+    @providerDir = File.expand_path(File.join(@cwd, "providerDir"))
     @path1 = @cwd + "/test_files/"
     @path_testdir = @path1 + "test_directory/"
     @path_testdir_noP = @path1 + "test_directory"
@@ -28,14 +29,14 @@ class TestDirectory < Test::Unit::TestCase
   end
 
   def test_load_service
-    BrowserPlus.run(@service) { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
     }
   end
 
   # BrowserPlus.Directory.list({params}, function{}())
   # Returns a list in "files" of filehandles resulting from a non-recursive traversal of the arguments. No directory structure information is returned.
   def test_list
-    BrowserPlus.run(@service) { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.list( { 'files' => list  } ) }
 
@@ -113,7 +114,7 @@ class TestDirectory < Test::Unit::TestCase
   # BrowserPlus.Directory.recursiveList({params}, function{}())
   # Returns a list in "files" of filehandles resulting from a recursive traversal of the arguments. No directory structure information is returned
   def test_recursiveList
-    BrowserPlus.run(@service) { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.recursiveList( { 'files' => list  } ) }
 
@@ -217,7 +218,7 @@ class TestDirectory < Test::Unit::TestCase
   # "handle" (a filehandle for this node), and for directories "children" which contains a list of objects for each of the directory's children.
   # Recurse into directories.
   def test_recursiveListWithStructure
-    BrowserPlus.run(@service) { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.recursiveListWithStructure( { 'files' => list  } ) }
 
