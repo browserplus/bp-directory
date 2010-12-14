@@ -55,8 +55,8 @@ public:
         }
     }
 
-    IVisitor::tResult visitNode(const Path& p,
-                                const Path& relPath) {
+    IVisitor::tResult visitNode(const bfs::path& p,
+                                const bfs::path& relPath) {
         // enforce max nodes visited
         if (m_visited++ >= m_limit) {
             return eStop;
@@ -66,10 +66,10 @@ public:
         if (isMimeType(p, m_mimeTypes)) {
             if (m_cb) {
                 bplus::Map m;
-                m.add("handle", new bplus::Path(p.externalUtf8()));
+                m.add("handle", new bplus::Path(nativeUtf8String(p)));
                 if (!m_flat) {
                     m.add("relativeName",
-                          new bplus::String(relPath.externalUtf8()));
+                          new bplus::String(nativeUtf8String(relPath)));
                 }
                 m_cb->invoke(m);
             }
@@ -84,8 +84,8 @@ public:
     void setCallback(const Callback& cb) { m_cb = new Callback(cb); }
     void setLimit(size_t l) { m_limit = l; }
 
-    void addChild(const Path& p,
-                  const Path& relPath) {
+    void addChild(const bfs::path& p,
+                  const bfs::path& relPath) {
         if (p.empty() || relPath.empty()) {
             // yea, right
             return;
@@ -93,35 +93,37 @@ public:
 
         // flat hierarchy is easy, only one list, all filehandles
         if (m_flat) {
-            m_topList->append(new bplus::Path(p.externalUtf8()));
+            m_topList->append(new bplus::Path(nativeUtf8String(p)));
             return;
         }
 
         // find list for relpath parent, creating any needed 
         // lists along the way.
         bplus::List* theList = NULL;
-        Path relParent = relPath.parent_path();
+        bfs::path relParent = relPath.parent_path();
         if (relParent.empty()) {
             theList = m_topList;
         } else {
             // find anchor
-            Path tpathFull = p.parent_path();
-            for (tBase::iterator it = relParent.end(); it != relParent.begin(); --it) {
+            bfs::path tpathFull = p.parent_path();
+            for (bfs::path::iterator it = relParent.end();
+                 it != relParent.begin(); --it) {
                 tpathFull = tpathFull.parent_path();
             }
-            Path tpath;
-            for (tBase::iterator it = relParent.begin(); it != relParent.end(); ++it) {
+            bfs::path tpath;
+            for (bfs::path::iterator it = relParent.begin();
+                 it != relParent.end(); ++it) {
                 tpath /= *it;
                 tpathFull /= *it;
                 if (m_listMap.find(tpath) == m_listMap.end()) {
                     // no list for tpath, so it must be added to heirarchy
                     bplus::Map* m = new bplus::Map;
-                    m->add("relativeName", new bplus::String(tpath.externalUtf8()));
-                    m->add("handle", new bplus::Path(tpathFull.externalUtf8()));
+                    m->add("relativeName", new bplus::String(nativeUtf8String(tpath)));
+                    m->add("handle", new bplus::Path(nativeUtf8String(tpathFull)));
                     bplus::List* kids = new bplus::List;
                     m->add("children", kids);
                     m_listMap[tpath] = kids;
-                    Path tparent = tpath.parent_path();
+                    bfs::path tparent = tpath.parent_path();
                     if (tparent.empty()) {
                         m_topList->append(m);
                     } else {
@@ -135,8 +137,8 @@ public:
         // now add this node to list.  if it's a dir,
         // also add new list to m_listMap
         bplus::Map* m = new bplus::Map;
-        m->add("relativeName", new bplus::String(relPath.externalUtf8()));
-        m->add("handle", new bplus::Path(p.externalUtf8()));
+        m->add("relativeName", new bplus::String(nativeUtf8String(relPath)));
+        m->add("handle", new bplus::Path(nativeUtf8String(p)));
         if (isDirectory(p)) {
             bplus::List* kids = new bplus::List;
             m->add("children", kids);
@@ -157,7 +159,7 @@ private:
     size_t m_limit;
     Callback* m_cb;
     size_t m_visited;
-    map<Path, bplus::List*> m_listMap; // aliases into m_topList structure
+    map<bfs::path, bplus::List*> m_listMap; // aliases into m_topList structure
     bplus::List* m_topList; 
 };
     
@@ -292,15 +294,15 @@ Directory::doList(const Transaction& tran,
         }
         
         // verify that all files exist
-        vector<Path> paths;
+        vector<bfs::path> paths;
         for (size_t i = 0; i < files->size(); i++) {
             const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
             if (!uri) {
                 throw string("non-path argument found in 'files'");
             }
-            Path path = pathFromURL((string)*uri);
+            bfs::path path = pathFromURL((string)*uri);
             if (!exists(path)) {
-                throw string(path.externalUtf8() + " not found");
+                throw string(path.string() + " not found");
             }
             paths.push_back(path);
         }
@@ -356,12 +358,10 @@ Directory::doList(const Transaction& tran,
         log(BP_DEBUG, "Directory::list(), catch " + msg);
         tran.error("directoryError", msg.c_str());
 
-    } catch (const tFileSystemError& e) {
-        // a boost::filesystem exception
+    } catch (const bfs::filesystem_error& e) {
         string msg = string("Directory::list(), catch boost::filesystem")
-                     + " exception, path1: '" 
-                     + Path(e.path1()).utf8()
-                     +", path2: '" + Path(e.path2()).utf8()
+                     + " exception, path1: '" + e.path1().string()
+                     +", path2: '" + e.path2().string()
                      + "' (" + e.what() + ")";
         log(BP_ERROR, "Directory: " + msg);
         tran.error("directoryError", msg.c_str());
