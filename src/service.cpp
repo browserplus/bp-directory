@@ -351,6 +351,7 @@ Directory::doList(const Transaction& tran,
         bplus::Map results;
         results.add("success", new bplus::Bool(true));
         results.add("files", v.adoptKids());
+        log(BP_DEBUG, "tran.complete(results)");
         tran.complete(results);
 
     } catch (const string& msg) {
