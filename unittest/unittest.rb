@@ -36,7 +36,7 @@ class TestDirectory < Test::Unit::TestCase
   # BrowserPlus.Directory.list({params}, function{}())
   # Returns a list in "files" of filehandles resulting from a non-recursive traversal of the arguments. No directory structure information is returned.
   def test_list
-    BrowserPlus.run(@service, @providerDir, nil, "./test_list.log") { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.list( { 'files' => list  } ) }
 
@@ -114,7 +114,7 @@ class TestDirectory < Test::Unit::TestCase
   # BrowserPlus.Directory.recursiveList({params}, function{}())
   # Returns a list in "files" of filehandles resulting from a recursive traversal of the arguments. No directory structure information is returned
   def test_recursiveList
-    BrowserPlus.run(@service, @providerDir, nil, "./test_recursiveList.log") { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.recursiveList( { 'files' => list  } ) }
 
@@ -218,7 +218,7 @@ class TestDirectory < Test::Unit::TestCase
   # "handle" (a filehandle for this node), and for directories "children" which contains a list of objects for each of the directory's children.
   # Recurse into directories.
   def test_recursiveListWithStructure
-    BrowserPlus.run(@service, @providerDir, nil, "./test_recursiveListWithStructure.log") { |s|
+    BrowserPlus.run(@service, @providerDir) { |s|
       list = Array.[]( @test_directory_1 + "/this" )
       assert_raise(RuntimeError) { s.recursiveListWithStructure( { 'files' => list  } ) }
 
