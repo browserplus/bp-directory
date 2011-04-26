@@ -19,10 +19,9 @@ class TestDirectory < Test::Unit::TestCase
     @providerDir = File.expand_path(File.join(@cwd, "providerDir"))
     @path1 = @cwd + "/test_files/"
     @path_testdir = @path1 + "test_directory/"
-    @path_testdir_noP = @path1 + "test_directory"
     @path_testdir1 = @path1 + "test_directory/test_directory_1/"
-    @test_directory = "path://" + @path1 + "test_directory/"
-    @test_directory_1 = "path://" + @path1 + "test_directory/test_directory_1"
+    @test_directory = "path:" + @path1 + "test_directory/"
+    @test_directory_1 = "path:" + @path1 + "test_directory/test_directory_1"
   end
   
   def teardown
@@ -132,7 +131,7 @@ class TestDirectory < Test::Unit::TestCase
       # Just one folder, no symbolic links.
       list = Array.[]( @test_directory )
       want = {"files" =>
-              [@path_testdir_noP,
+              [@path_testdir,
                @path_testdir + "foo1.txt",
                @path_testdir + "foo2.txt",
                @path_testdir + "foo3.txt",
@@ -149,7 +148,7 @@ class TestDirectory < Test::Unit::TestCase
       list = Array.[]( @test_directory )
       want = if CONFIG['arch'] =~ /mswin|mingw/
                {"files" =>
-                [@path_testdir_noP,
+                [@path_testdir,
                  @path_testdir + "foo1.txt",
                  @path_testdir + "foo2.txt",
                  @path_testdir + "foo3.txt",
@@ -161,7 +160,7 @@ class TestDirectory < Test::Unit::TestCase
                 "success" => true}
               else
                {"files" =>
-                [@path_testdir_noP,
+                [@path_testdir,
                  @path_testdir + "foo1.txt",
                  @path_testdir + "foo2.txt",
                  @path_testdir + "foo3.txt",
@@ -198,7 +197,7 @@ class TestDirectory < Test::Unit::TestCase
       # Limit = 2.
       list = Array.[]( @test_directory )
       want = {"files" =>
-              [@path_testdir_noP,
+              [@path_testdir,
                @path_testdir + "foo1.txt"],
               "success" => true}
       got = s.recursiveList({ 'files' => list, "followLinks" => true, "limit" => 2 })
@@ -247,7 +246,7 @@ class TestDirectory < Test::Unit::TestCase
       list = Array.[]( @test_directory )
       want = if CONFIG['arch'] =~ /mswin|mingw/
                {"files" =>
-                [{"handle" => @path_testdir_noP,
+                [{"handle" => @path_testdir,
                   "relativeName" => ".",
                   "children" =>
                    [{"handle" => @path_testdir + "foo1.txt",
@@ -270,7 +269,7 @@ class TestDirectory < Test::Unit::TestCase
                "success" => true}
              else
                {"files" =>
-                [{"handle" => @path_testdir_noP,
+                [{"handle" => @path_testdir,
                   "relativeName" => ".",
                   "children" =>
                    [{"handle" => @path_testdir + "foo1.txt",
@@ -330,7 +329,7 @@ class TestDirectory < Test::Unit::TestCase
       # Size = 2.
       list = Array.[]( @test_directory )
       want = {"files" =>
-          [{"handle" => @path_testdir_noP,
+          [{"handle" => @path_testdir,
             "relativeName" => ".",
             "children" =>
              [{"handle" => @path_testdir + "foo1.txt",
