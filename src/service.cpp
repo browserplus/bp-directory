@@ -66,7 +66,7 @@ public:
         if (isMimeType(p, m_mimeTypes)) {
             if (m_cb) {
                 bplus::Map m;
-                m.add("handle", new bplus::Path(nativeUtf8String(p)));
+                m.add("handle", new bplus::Path(nativeString(p)));
                 if (!m_flat) {
                     m.add("relativeName",
                           new bplus::String(nativeUtf8String(relPath)));
@@ -93,7 +93,7 @@ public:
 
         // flat hierarchy is easy, only one list, all filehandles
         if (m_flat) {
-            m_topList->append(new bplus::Path(nativeUtf8String(p)));
+            m_topList->append(new bplus::Path(nativeString(p)));
             return;
         }
 
@@ -119,7 +119,7 @@ public:
                     // no list for tpath, so it must be added to heirarchy
                     bplus::Map* m = new bplus::Map;
                     m->add("relativeName", new bplus::String(nativeUtf8String(tpath)));
-                    m->add("handle", new bplus::Path(nativeUtf8String(tpathFull)));
+                    m->add("handle", new bplus::Path(nativeString(tpathFull)));
                     bplus::List* kids = new bplus::List;
                     m->add("children", kids);
                     m_listMap[tpath] = kids;
@@ -138,7 +138,7 @@ public:
         // also add new list to m_listMap
         bplus::Map* m = new bplus::Map;
         m->add("relativeName", new bplus::String(nativeUtf8String(relPath)));
-        m->add("handle", new bplus::Path(nativeUtf8String(p)));
+        m->add("handle", new bplus::Path(nativeString(p)));
         if (isDirectory(p)) {
             bplus::List* kids = new bplus::List;
             m->add("children", kids);
@@ -192,7 +192,7 @@ private:
                 bool flat);
 };
 
-BP_SERVICE_DESC(Directory, "Directory", "2.0.6",
+BP_SERVICE_DESC(Directory, "Directory", "2.1.0",
                 "Lets you list directory contents and invoke JavaScript ."
                 "callbacks for the contained items.")
 
@@ -232,10 +232,10 @@ ADD_BP_METHOD(Directory, recursiveListWithStructure,
               "Returns a nested list in \"files\" of objects for each of "
               "the arguments.  An \"object\" contains the keys "
               "\"relativeName\" (this node's name relative to the "
-              "specified directory), \"handle\" (a filehandle for "
-              "this node), and for directories \"children\" which "
-              "contains a list of objects for each of the directory's "
-              "children.  Recurse into directories.")
+              "specified directory expressed as a UTF8 string), "
+              "\"handle\" (a filehandle for this node), and for directories "
+              "\"children\" which contains a list of objects for each of the "
+              "directory's children.  Recurses into directories.")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "files", List, true, 
                   "Paths to traverse.")
 ADD_BP_METHOD_ARG(recursiveListWithStructure, "followLinks", Boolean, false, 
@@ -296,11 +296,11 @@ Directory::doList(const Transaction& tran,
         // verify that all files exist
         vector<bfs::path> paths;
         for (size_t i = 0; i < files->size(); i++) {
-            const bplus::Path* uri = dynamic_cast<const bplus::Path*>(files->value(i));
-            if (!uri) {
+            const bplus::Path* bpPath = dynamic_cast<const bplus::Path*>(files->value(i));
+            if (!bpPath) {
                 throw string("non-path argument found in 'files'");
             }
-            bfs::path path = pathFromURL((string)*uri);
+            bfs::path path((bplus::tPathString)*bpPath);
             if (!exists(path)) {
                 throw string(path.string() + " not found");
             }
